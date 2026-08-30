@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dotenv import load_dotenv
-from langchain_groq import groq
+from langchain_groq import ChatGroq
 import os
 
 load_dotenv()
@@ -17,7 +17,7 @@ class Provider:
 PROVIDER = [
   Provider(
     name='openai/gpt-oss-120b',
-    env_var='OPENAI_API_KEY',
+    env_var='GROQ_API_KEY',
     is_cost=True,
     base_url=None,
     model='gpt-oss-120b'
@@ -31,7 +31,7 @@ def select_provider() -> Provider:
     
   raise RuntimeError("No provider found. Please set the appropriate environment variable for a provider.")
 
-def build_chat_model() -> tuple[groq, Provider]:
+def build_chat_model() -> tuple[ChatGroq, Provider]:
   provider= select_provider()
   kwargs= {
     "model": provider.model,
@@ -40,4 +40,5 @@ def build_chat_model() -> tuple[groq, Provider]:
   if provider.base_url is not None:
     kwargs["base_url"]= provider.base_url
 
-  model= groq(**kwargs), provider 
+  model= ChatGroq(**kwargs), provider 
+  return model
