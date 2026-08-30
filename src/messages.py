@@ -1,5 +1,5 @@
 from typing import Any
-from langchain.messages import AIMessage
+from langchain.messages import AIMessage, ToolMessage
 
 def user_input(text: str) -> dict[str, str]:
   """OpenAI style dict for user input"""
@@ -20,6 +20,15 @@ def last_ai_text(messages: list[Any]) -> str:
         block.get("text", "") for block in content if isinstance(block, dict) and block.get("type") == "text"
       ]
       return "\n".join(part for part in parts if part)
+    
+  return ""
+
+
+def last_tool_call(messages: list[Any]) -> str:
+  for message in reversed(messages):
+    if isinstance(message, ToolMessage):
+      content= message.content
+      return content if isinstance(content, str) else str(content)
     
   return ""
 
