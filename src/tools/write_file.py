@@ -4,6 +4,19 @@ from src.tools.text import prepare_file_content
 
 @tool
 def write_file(path: str, content: str) -> str:
+  """
+   create overwrite a UTF-8 text file in the working directory.
+
+   Works for any text file eg .js, .ts, .py, .java etc
+
+   the `content` is the full file body with real newline characters between lines. Do not write the two-character sequence backslash-n. Don't write as a makrdown fence
+
+   Args:
+   path-> Realtive path of the file to create/write a content
+  content-> Full file body with real newline characters between lines. Do not write the two-character sequence backslash-n. Don't write as a makrdown fence
+
+  
+  """
   if not path:
     raise ValueError("Path cannot be empty.")
   
