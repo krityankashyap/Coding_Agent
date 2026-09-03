@@ -1,3 +1,5 @@
+from pathlib import Path
+
 _ESCAPED_MAP= {
   "\\n": "\n",
   "\\t": "\t",
@@ -12,6 +14,10 @@ _HTML_ENTITIES= {
   "&quot;": '"',
   "&apos;": "'",
 }
+
+_MARKDOWN_SUFFIXES= {".md", ".markdown", ".mdown", ".mkdn", ".mkd", ".mdwn", ".mdtxt", ".mdtext"}
+_MARKUP_SUFFIXES= {".html", ".htm", ".xhtml", ".xml", ".xsl", ".xsd", ".svg", ".rss", ".atom"}
+
 
 def looks_like_escape_src(txt: str) -> bool:
   """return true-> When they payload is one logical line stuffed with \\n sequences"""
@@ -60,6 +66,21 @@ def strip_markdown_fence(txt: str)-> str:
     lines= lines[:-1]  # Remove the closing fence line
 
   return "\n".join(lines)
+
+def prepare_file_content(path: str, txt: str) -> str:
+  """
+   Normalised the file content based on the file type. For markdown files, it strips code fences. For markup files, it unescapes HTML entities.
+  """
+  suffix= Path(path).suffix.lower()
+  prepared= normalized_source_txt(txt)
+
+  if suffix not in _MARKDOWN_SUFFIXES:
+    prepared= strip_markdown_fence(prepared)
+  if suffix not in _MARKUP_SUFFIXES:
+    prepared= unescape_html_entities(prepared)
+
+  return prepared
+
 
 
    
