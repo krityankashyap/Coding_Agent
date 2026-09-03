@@ -44,5 +44,22 @@ def unescape_html_entities(txt: str) -> str:
     unescaped= unescaped.replace(entity, raw)
 
     return unescaped
+  
+
+def strip_markdown_fence(txt: str)-> str:
+  """Strip markdown code fences from the text. """
+  
+  if "```" not in txt:
+    return txt
+  
+  lines= txt.split("\n")
+  if lines and lines[0].lstrip().startswith("```"):
+    lines= lines[1:]  # Remove the opening fence line
+
+  if lines and lines[-1].strip().startswith("```"):
+    lines= lines[:-1]  # Remove the closing fence line
+
+  return "\n".join(lines)
+
 
    
