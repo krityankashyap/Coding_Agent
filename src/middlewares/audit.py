@@ -34,7 +34,7 @@ class AuditMiddleware(AgentMiddleware):
         self,
         entry: dict[str, Any]
   ) -> None:
-     log_path= get_work_dir() / "audit_log.jsonl"  # Log file path in the working directory
+     log_path= get_work_dir() / ".audit_audit.log"  # Log file path in the working directory
      log_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
      with log_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(entry) + "\n")  # Append the JSON entry to the log file
