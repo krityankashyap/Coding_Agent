@@ -6,9 +6,11 @@ from src.middlewares.hitl import HumanInTheLoopMiddleware
 from src.models import build_chat_model
 from langchain.agents import create_agent
 from langchain.agents.middleware import ProviderStrategy
-from langchain.schema import TurnSummary
+from src.schema import TurnSummary
 from src.tools import ALL_TOOLS
 from src.prompts import build_system_prompt
+from src.memory import make_checkpoint_memory
+from langgraph.checkpoint.memory import InMemorySaver
 
 
 def build_middleware(
@@ -39,8 +41,9 @@ def build_middleware(
 
 def build_agent(
     *,
+    checkpointer: InMemorySaver | None = None,
     enable_hitl: bool | None = None,
-    extra_guidance: str= ""
+    extra_guidance: str = ""
 ):
   model, _provider= build_chat_model()
   use_hitl= enable_hitl() if enable_hitl is None else enable_hitl  # Use the provided enable_hitl value or default to the environment variable setting
@@ -51,6 +54,7 @@ def build_agent(
     system_prompt= build_system_prompt(extra_guidance= extra_guidance),
     middleware= build_middleware(enable_hitl= use_hitl),
     response_format= ProviderStrategy(TurnSummary),
+    checkpointer= checkpointer or  make_checkpoint_memory(),
     name= "Coding Agent"
 
   )
