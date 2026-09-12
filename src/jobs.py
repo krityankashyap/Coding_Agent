@@ -3,7 +3,10 @@ from dataclasses import dataclass, field
 from typing import Any
 import signal
 import contextlib
-
+import subprocess
+from pathlib import Path
+from datetime import datetime
+from pytz import UTC
 @dataclass
 class BackgroundJob:
   pid: int
@@ -65,6 +68,38 @@ def stop_pid(pid: int) -> str:
     return f"Job with PID {pid} has already terminated."
   except PermissionError:
     return f"Permission denied to stop job with PID {pid}."
+  
+  if job.proc is not None:
+    try:
+      job.proc.wait(timeout= 0.5) # Wait for the process to terminate gracefully
+    except subprocess.TimeoutExpired:
+      with contextlib.suppress(ProcessLookupError, PermissionError):
+        os.killpg(pid, signal.SIGKILL)
+      with contextlib.suppress(subprocess.TimeoutExpired):
+        job.proc.wait(timeout= 1)
+
+      remove(pid)
+  return f"Job with PID {pid} was forcefully terminated."
+
+def read_log_tail(log_path: Path, *, max_chars: int= 4000) -> str:
+  """Read the last `max_chars` characters from the log file."""
+  if not log_path.exists():
+    return f"Log file '{log_path}' does not exist."
+  
+  text= log_path.read_text(encoding="utf-8", errors="replace")
+  if len(text) > max_chars:
+    return text[-max_chars:]  # Return only the last `max_chars` characters
+  
+  return text
+
+def isoformat_now() -> str:
+  """Return the current UTC time in ISO 8601 format."""
+  return datetime.now(UTC).isoformat()
+
+
+
+  
+    
 
         
     
