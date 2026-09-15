@@ -5,8 +5,7 @@ import signal
 import contextlib
 import subprocess
 from pathlib import Path
-from datetime import datetime
-from pytz import UTC
+from datetime import datetime, UTC
 @dataclass
 class BackgroundJob:
   pid: int
@@ -16,7 +15,7 @@ class BackgroundJob:
   proc: Any= field(default=None, repr=False)  # Process handle, not included in the repr
 
 
-_JOBS= dict[int , BackgroundJob]= ()  # Dictionary to hold background jobs, keyed by PID
+_JOBS: dict[int , BackgroundJob]= {}  # Dictionary to hold background jobs, keyed by PID
 
 def add_job(job: BackgroundJob) -> None:
   """Add a new background job to the job list."""
@@ -54,7 +53,7 @@ def stop_pid(pid: int) -> str:
     return f"No job found with PID {pid}."
   
   if not is_alive(pid):
-    if job.proc is not None:
+    if job.proc is not None: 
       with contextlib.suppress(ChildProcessError): # Suppress error if the process has already terminated
         job.proc.wait(timeout= 0.1)
     remove(pid)
