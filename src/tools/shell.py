@@ -1,4 +1,6 @@
 from dotenv import load_dotenv
+import shlex
+import sys
 import re
 
 load_dotenv()
@@ -42,10 +44,31 @@ def deny_commands(command: str) -> str | None :
     return "Blocked by middleware: command not found"
   
   for pattern in BLOCKED_COMMAND_PATTERNS:
-    if re.search(pattern, command, flag=re.IGNORECASE):
+    if re.search(pattern, command, flags=re.IGNORECASE):
       return f"Blocked by middleware: command matched a dangerous pattern {pattern}"
     
   return None # the command is safe and can proceed
+
+def looks_like_server(command: str) -> bool:
+    return any(re.search(pattern, command, flags=re.IGNORECASE) for pattern in SERVER_PATTERNS)
+
+def rewrite_command(command: str) -> str:
+  exe= shlex.quote(sys.executable)  # 
+
+  stripped= command.strip()
+
+  if _PIP_PREFIX.match(stripped):
+        return _PIP_PREFIX.sub(f"{exe} -m pip", stripped, count=1)
+
+  if _PYTHON_PREFIX.match(stripped):
+        return _PYTHON_PREFIX.sub(exe, stripped, count=1)
+
+  if _FLASK_PREFIX.match(stripped):
+        return _FLASK_PREFIX.sub(f"{exe} -m flask", stripped, count=1)
+
+  return command
+
+
     
 
 
