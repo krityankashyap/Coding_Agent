@@ -1,5 +1,8 @@
 from dotenv import load_dotenv
 from src.config.config import get_work_dir
+from src.jobs import isoformat_now
+from src.jobs import add_job, stop_pid, read_log_tail
+import time
 import shlex
 import sys
 import re
@@ -101,6 +104,83 @@ def _run_foreground(command: str, timeout: int) -> str:
             "If this is a server return with backgroung_jobs= True"
             f"{_clip(str(stdout))}"
         )
+    
+ # commands executed successfully, return the output
+    chunks= []
+    if completed.stdout:
+        chunks.append(completed.stdout.rstrip())
+    if completed.stderr:
+        chunks.append(completed.stderr.rstrip())
+    
+    body= "\n".join(chunks) if chunks else "(no output)"
+    return f"exist code {completed.returncode}\n{_clip(body)}"
+
+def run_background(command: str) -> str:
+    cwd= get_work_dir()
+    cwd.mkdir(parents=True, exist_ok=True)
+    env= os.environ.copy()
+    env.setdefault("PYTHONUNBUFFERED", "1")  # Ensure Python output is unbuffered for real-time feedback
+
+    log_dir= cwd/ ".agent_jobs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    stamp= isoformat_now().replace(":", "").replace("+", "") # we want to put this timestamp in the log file name, but colons and plus signs can be problematic in file names, so we remove them.
+
+    tmp_log= log_dir/ f"pending-{stamp}.log"
+    log_file= tmp_log.open("w", encoding="utf-8")
+
+    try:
+        proc= subprocess.Popen(
+            ["/bin/bash", "lc", command],
+            env= env,
+            cwd= cwd,
+            stdout= log_file,
+            stderr= subprocess.STDOUT,
+            start_new_session= True  # Start the process in a new session to isolate it from the parent process
+        )
+        
+    finally:
+        log_file.close()   # Now this is log file where we write and update so we have to ensure that we close the file after we have started the process, so that the process can write to it without any issues.
+
+        log_path= log_dir/ f"{proc.pid}-{stamp}.log"  # We have to rename the log file to include the process ID and timestamp for easier identification
+        tmp_log.rename(log_path)  # Rename the temporary log file to the final log file name
+        add_job(
+            pid= proc.pid,
+            command= command,
+            log_path= log_path,
+            started_at= isoformat_now(),
+            proc= proc
+        )
+
+    time.sleep(1) # Give the process a moment to start and potentially write to the log file
+    tail= read_log_tail(log_path)
+    if proc.poll() is not None:  # If the process has already terminated
+        stop_pid(proc.pid)  # Clean up the job record
+        return f"Process exited immediately with code {proc.returncode}\n{tail}"
+
+    # if the process is still running
+    urls = re.findall(r"https?://[^\s]+", tail)
+    url_line = f"Open in the browser: {urls[0]}\n" if urls else (
+        "No url in the log yet - try http://127.0.0.1:3000"
+        "and check list_jobs if it is blank.\n"
+    )
+
+    return (
+        f"{url_line}\n"
+        f"Started background job (pid={proc.pid}).\n"
+        f"Log: {log_path}\n"
+        f"cwd={cwd}\n"
+        f"Use list_jobs/stop_job to manage it.\n"
+        f"------ output so far -------\n {_clip(tail) or 'No output yet.'}"
+    )
+    
+
+
+
+  
+
+
+  
 
          
 
