@@ -1,7 +1,10 @@
 from dotenv import load_dotenv
+from src.config.config import get_work_dir
 import shlex
 import sys
 import re
+import os
+import subprocess
 
 load_dotenv()
 
@@ -67,6 +70,42 @@ def rewrite_command(command: str) -> str:
         return _FLASK_PREFIX.sub(f"{exe} -m flask", stripped, count=1)
 
   return command
+
+def _clip(text: str) -> str:
+    if len(text) <= load_dotenv.MAX_OUTPUT_CHARS:
+        return text 
+
+    return text[:load_dotenv.MAX_OUTPUT_CHARS] + "\n... (truncated)"
+
+
+def _run_foreground(command: str, timeout: int) -> str:
+    cwd= get_work_dir()
+    cwd.mkdir(parent=True, exist_ok= True)
+    env= os.environ.copy()  # This line of code takes a snapshot of your computer's environment variables and makes a safe, independent copy of them.
+
+    env.setdefault("PYTHONUNBUFFERED", "1")  # Ensure Python output is unbuffered for real-time feedback
+
+    try:
+        completed= subprocess.run(
+            ["/bin/bash", "lc", command],
+            cwd= cwd,
+            env= env,
+            capture_output= True,
+            text= True,
+            timeout= timeout
+        )        
+    except subprocess.TimeoutExpired as e:
+        stdout= {e.stdout or ""} + {e.stderr or ""}
+        return (
+            f"Timed out after {timeout}s (process killed)"
+            "If this is a server return with backgroung_jobs= True"
+            f"{_clip(str(stdout))}"
+        )
+
+         
+
+
+
 
 
     
