@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from schema import TurnSummary
 from typing import Any
 from langgraph.types import Command
+from src.messages import last_ai_text, last_tool_call
 
 @dataclass
 class AgentTurnResult:
@@ -10,12 +11,57 @@ class AgentTurnResult:
   messages: list[Any]  # represents the messages exchanged during this turn, including user input, agent responses, and tool calls
   pending_interrupt: dict[str, Any] | None
 
+def _as_summary(value: Any) -> TurnSummary | None:
+ if value is None:
+  return None
+ 
+ if isinstance(value, TurnSummary):
+  return value
+ 
+ if isinstance(value, dict):
+  try:
+   return TurnSummary.model_validate(value)
+  except Exception:
+   return None
+  
+ return None
+
+
+def parse_invoke_result(result: Any) -> AgentTurnResult:
+ interrupts= tuple(getattr(result, "interrupts", []), ())
+ # get all the complete graph state using the value property
+ value= getattr(result, "value", result)
+ if not isinstance(value, dict):
+  value= {}
+
+  messages= value.get("messages", [])
+
+  if interrupts:
+    payload= interrupts[0].value
+    return AgentTurnResult(
+     text="",
+     structured=None,
+     messages= messages,
+      pending_interrupt= payload
+    )
+  
+  return AgentTurnResult(
+   text= last_ai_text(messages) or last_tool_call(messages) or "",
+   structured= _as_summary(value.get("structured_response")),
+   messages= messages,
+   pending_interrupt= None
+
+  )
+ 
+ 
+
 def start_turn(agent, user_txt: str, config: dict) -> AgentTurnResult:
  result= agent.invoke(
    {"messages" : [{"role": "user", "content": user_txt}]},
-   config: config,
-   version: "v2"
+   config= config,
+   version= "v2"
  )
+ return parse_invoke_result(result)
 
 def resume_turn(agent, decision: list[dict], config: dict) -> AgentTurnResult:
  result= agent.invoke(
@@ -27,4 +73,4 @@ def resume_turn(agent, decision: list[dict], config: dict) -> AgentTurnResult:
   config= config,
   version= "v2"
  )
-  
+ return parse_invoke_result(result)
