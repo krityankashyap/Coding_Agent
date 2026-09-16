@@ -2,12 +2,16 @@ from dotenv import load_dotenv
 from src.config.config import get_work_dir
 from src.jobs import isoformat_now
 from src.jobs import add_job, stop_pid, read_log_tail
+from src.jobs import all_jobs, is_alive
+from langchain.tools import tool
 import time
 import shlex
 import sys
 import re
 import os
 import subprocess
+
+DEFAULT_TIMEOUT = 30  # Default timeout in seconds
 
 load_dotenv()
 
@@ -173,6 +177,70 @@ def run_background(command: str) -> str:
         f"Use list_jobs/stop_job to manage it.\n"
         f"------ output so far -------\n {_clip(tail) or 'No output yet.'}"
     )
+
+
+@tool
+def stop_job(pid: int) -> str:
+    """
+    Stop a background job previously started by run_command.
+    Args:
+        pid: The process id of the job to stop.
+    """
+    return stop_pid(pid)
+
+@tool 
+def run_command(command: str, background: bool = False, timeout_seconds: int = 0) -> str:
+    """
+    Run a bash command in the working directory (host machine, not a sandbox).
+
+    Foreground commands wait for completion. Set background=True for servers like (flask, uvicorn, npm start) 
+    so they keep running. Server-like commands are auto backgrounded even if you forget the flag.
+
+    Args:
+        command: bash command to run, e.g. 'python app.py' or 'ls -la'.
+        background: If true, start the process and return pid immediately..
+        timeout_seconds: Maximum time to wait for the command to complete. This is for foreground timeout. 0 uses default (30s).
+
+    """
+
+    blocked = deny_commands(command)
+    if blocked:
+        return blocked 
+
+    timeout = timeout_seconds if timeout_seconds > 0 else DEFAULT_TIMEOUT
+
+    background = bool(background) or looks_like_server(command)
+
+    command = rewrite_command(command)
+
+    if background:
+        return run_background(command)
+    else:
+        return _run_foreground(command, timeout)
+
+@tool 
+def list_jobs() -> str:
+    """
+    List background processes started by run_command (servers, long jobs).
+    """
+
+    jobs = all_jobs()
+    if not jobs:
+        return "No background jobs running."
+
+    lines = []
+    for job in jobs:
+        state = "running" if is_alive(job.pid) else "exited"
+        lines.append(
+            f"pid={job.pid} state={state} started={job.started_at} cmd={job.command}"
+        )
+        tail = read_log_tail(job.log_path, max_chars=800)
+
+        if tail:
+            lines.append(tail.rstrip())
+            lines.append("--------------------------------")
+        
+        return "\n".join(lines)
     
 
 
