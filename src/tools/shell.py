@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
-from src.config.config import get_work_dir
-from src.jobs import isoformat_now
-from src.jobs import add_job, stop_pid, read_log_tail
-from src.jobs import all_jobs, is_alive
+from config.config import get_work_dir
+from jobs import isoformat_now
+from jobs import add_job, stop_pid, read_log_tail
+from jobs import all_jobs, is_alive
 from langchain.tools import tool
 import time
 import shlex

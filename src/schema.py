@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 class TurnSummary(BaseModel) :
   """ What the coding agent did in this turn? """
 
-  summary= Field( description="Summary of the coding agent's actions in this turn" )
+  summary: str = Field( description="Summary of the coding agent's actions in this turn" )
   file_touched: list[str]= Field(
     description="List of files that were created, modified, or deleted in this turn",
     default_factory= list

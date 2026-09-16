@@ -1,6 +1,6 @@
 from langchain.tools import tool
-from src.config.config import resolve_work_path
-from src.tools.text import prepare_file_content
+from tools.paths import resolve_work_path
+from tools.text import prepare_file_content
 
 @tool
 def write_file(path: str, content: str) -> str:

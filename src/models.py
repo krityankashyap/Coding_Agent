@@ -20,7 +20,7 @@ PROVIDER = [
     env_var='GROQ_API_KEY',
     is_cost=True,
     base_url=None,
-    model='gpt-oss-120b'
+    model='openai/gpt-oss-120b'
   ),
 ]
 

@@ -1,4 +1,4 @@
-from src.tools.paths import resolve_work_path
+from tools.paths import resolve_work_path
 from langchain.tools import tool
 
 @tool

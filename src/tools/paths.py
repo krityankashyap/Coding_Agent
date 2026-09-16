@@ -6,7 +6,7 @@ Let's it want to write a file so which path it's going to write the file for tha
 
 from pathlib import Path
 from fnmatch import fnmatch
-from src.config.config import get_work_dir
+from config.config import get_work_dir
 
 BLOCKED_PATHS_PATTERNS= [
   ".env",

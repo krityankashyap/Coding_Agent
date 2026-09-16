@@ -8,9 +8,9 @@ from langchain.agents.middleware import AgentMiddleware
 from langchain.tools.tool_node import ToolCallRequest
 from langchain.messages import ToolMessage
 from langgraph.types import Command
-from src.tools.paths import is_blocked_path
-from src.config.config import get_work_dir
-from src.tools.paths import resolve_work_path
+from tools.paths import is_blocked_path
+from config.config import get_work_dir
+from tools.paths import resolve_work_path
 
 _FILE_TOOLS= {
    "read_file",

@@ -7,6 +7,6 @@ def make_checkpoint_memory() -> InMemorySaver:
 def thred_config(thredId: str) -> dict:
     return {
         "configurable": {
-            "thredId": thredId,
+            "thread_id": thredId,
         }
     }

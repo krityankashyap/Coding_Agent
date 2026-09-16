@@ -1,5 +1,5 @@
 from langchain.tools import tool
-from src.config.config import get_work_dir
+from config.config import get_work_dir
 from tools.paths import resolve_work_path, is_blocked_path
 import json
 import os

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from schema import TurnSummary
 from typing import Any
 from langgraph.types import Command
-from src.messages import last_ai_text, last_tool_call
-from src.tools.text import prepare_file_content
+from messages import last_ai_text, last_tool_call
+from tools.text import prepare_file_content
 
 @dataclass
 class AgentTurnResult:

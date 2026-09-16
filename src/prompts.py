@@ -1,5 +1,5 @@
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from config import PROMPTS_DIR, AGENT_NAME, get_work_dir
+from config.config import PROMPTS_DIR, AGENT_NAME, get_work_dir
 from tools import tool_catalog
 
 _env= Environment(

@@ -6,7 +6,7 @@ from langchain.tools.tool_node import ToolCallRequest
 from langchain.messages import ToolMessage
 from langgraph.types import Command
 
-from src.config.config import get_work_dir
+from config.config import get_work_dir
 
 class AuditMiddleware(AgentMiddleware):
   """Append JSON record after each tool call (approved or rejected) to a log file for auditing purposes."""
