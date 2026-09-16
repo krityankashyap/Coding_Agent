@@ -13,13 +13,13 @@ def read_file(path: str) -> str:
   try:
     file_path= resolve_work_path(path)  # Resolve the path to ensure it's within the working directory
   except ValueError as e:
-    raise ValueError(f"Invalid path '{path}': {e}") from e
+    return f"Path escapes the working directory: {e}"
   
   try:
     return file_path.read_text(encoding="utf-8")  # Read the file content as UTF-8 text
   except FileNotFoundError:
-    raise FileNotFoundError(f"File '{file_path}' not found.")
+    return f"File '{file_path}' not found."
   except PermissionError:
-    raise PermissionError(f"Permission denied when trying to read file '{file_path}'.")
+    return f"Permission denied when trying to read file '{file_path}'."
   except Exception as e:
-    raise RuntimeError(f"An error occurred while reading file '{file_path}': {e}") from e
+    return f"An error occurred while reading file '{file_path}': {e}"

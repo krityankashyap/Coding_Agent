@@ -6,11 +6,17 @@ def build_hitl_middlewares() -> HumanInTheLoopMiddleware:
   return HumanInTheLoopMiddleware(
     interrupt_on={
       "read_file": False,  # Do not interrupt on read_file tool
+      "list_jobs": False,  # Do not interrupt on list_jobs tool
+      "stop_jobs": False,  # Do not interrupt on stop_jobs tool
       "write_file":{
         "allowed_decisions" : ["approve", "reject"],  # Only allow approve or reject decisions for write_file tool
         "description": "Write or overwrite a file ondisk"
 
       } ,
+      "run_command": {
+        "allowed_decisions": ["approve", "edit", "reject"],
+        "description": "Run the bash command in the current working directory (host machine not in sandbox)"
+      },
       "edit_file": {
         "allowed_decisions" : ["approve", "reject"],  # Only allow approve or reject decisions for edit_file tool
         "description": "Edit a file on disk"

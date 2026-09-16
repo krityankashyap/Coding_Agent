@@ -33,6 +33,9 @@ def deny_reason(tool_name: str, arguments: dict[str, Any]) -> str | None:
     if tool_name not in _FILE_TOOLS:
        return None
     
+    if tool_name== "run_command":
+       return None
+    
     path= arguments.get("path", ".") # Get the path argument, defaulting to the current directory
 
     # Check if the path is blocked

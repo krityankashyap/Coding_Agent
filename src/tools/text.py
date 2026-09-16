@@ -25,7 +25,7 @@ def looks_like_escape_src(txt: str) -> bool:
   if "\\n" not in txt:
     return False
   
-  return txt.count("\\n") <= 1
+  return txt.count("\n") <= 1
 
 def normalized_source_txt(txt: str) -> str:
   """Turn double escaped lines/tabs into real ones. """
